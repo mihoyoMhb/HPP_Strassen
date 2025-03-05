@@ -5,7 +5,7 @@
 #include "matrix_vectorized_serial.h"
 
 int main() {
-    int n = 1024;  // 测试矩阵尺寸，可根据需要调整
+    int n = 2048;  // 测试矩阵尺寸，可根据需要调整
     double *A = (double*)malloc(n * n * sizeof(double));
     double *B = (double*)malloc(n * n * sizeof(double));
     double *C = (double*)malloc(n * n * sizeof(double));
