@@ -12,7 +12,29 @@ void multiply_standard_serial_vectorized(const double *restrict A,
         C[i] = 0.0;
     }
 
-    // 使用块（Tiling）进行矩阵乘法，结合 omp simd 提示编译器向量化内层循环
+    /*
+    Block Matrix Multiplication
+
+    The core idea of block matrix multiplication is partitioned computation, 
+    where each computation processes a small submatrix at a time. 
+    This ensures that frequently accessed data stays in the CPU cache as long as 
+    possible, reducing cache misses.
+
+    Optimized Approach:
+
+    1. Block Partitioning: 
+    
+    The matrix is divided into smaller blockSize × blockSize 
+    submatrices, and each block is processed separately.
+    In-block Computation: Each iteration only processes a smaller submatrix, 
+    which improves cache hit rates.
+
+    2. Optimized Memory Access Order: 
+
+    The original code uses row-major storage, 
+    and the access pattern follows row-wise traversal, 
+    making it more compatible with CPU cache prefetching mechanisms.
+    */
     for (int ii = 0; ii < n; ii += blockSize) {
         int i_max = (ii + blockSize > n) ? n : (ii + blockSize);
         for (int kk = 0; kk < n; kk += blockSize) {

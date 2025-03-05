@@ -11,7 +11,7 @@ int main() {
     double *C = (double*)malloc(n * n * sizeof(double));
 
     // 使用随机数初始化 A、B（值在 [0,1]）
-    srand(time(NULL));
+    srand(42);
     for (int i = 0; i < n * n; i++){
         A[i] = (double)rand() / RAND_MAX;
         B[i] = (double)rand() / RAND_MAX;
