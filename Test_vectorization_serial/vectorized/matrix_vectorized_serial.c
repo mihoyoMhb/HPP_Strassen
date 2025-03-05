@@ -7,7 +7,6 @@ void multiply_standard_serial_vectorized(const double *restrict A,
     int i, j, k;
     const int blockSize = 64;  // 块尺寸，可根据硬件调节
 
-    // 初始化 C 为 0
     for (i = 0; i < n * n; i++) {
         C[i] = 0.0;
     }
@@ -34,6 +33,10 @@ void multiply_standard_serial_vectorized(const double *restrict A,
     The original code uses row-major storage, 
     and the access pattern follows row-wise traversal, 
     making it more compatible with CPU cache prefetching mechanisms.
+
+    https://www.reddit.com/r/learnprogramming/comments/le4ve/how_does_blocking_increase_speedup_of_matrix/
+    https://ximera.osu.edu/la/LinearAlgebra/MAT-M-0023/main
+    https://www.netlib.org/utk/papers/autoblock/node2.html
     */
     for (int ii = 0; ii < n; ii += blockSize) {
         int i_max = (ii + blockSize > n) ? n : (ii + blockSize);

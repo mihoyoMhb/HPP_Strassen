@@ -5,9 +5,8 @@ void multiply_standard_serial_non_vectorized(const double *A,
                                                double *C,
                                                int n) {
     int i, j, k;
-    const int blockSize = 64;  // 块尺寸
+    const int blockSize = 64;  
 
-    // 初始化 C 为 0
     for (i = 0; i < n * n; i++) {
         C[i] = 0.0;
     }
