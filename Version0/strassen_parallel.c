@@ -10,7 +10,7 @@ void strassen_parallel(const double *restrict A,
     int n) {
     if (n <= BASE_SIZE) {
         // For small matrices, fall back to serial standard multiplication
-        multiply_standard_parallel(A, B, C, n);
+        multiply_standard_serial(A, B, C, n);
         return;
     }
     

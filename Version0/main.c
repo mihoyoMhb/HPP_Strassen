@@ -5,7 +5,7 @@
 
 int main() {
     // Define the matrix sizes for testing
-    int test_sizes[] = {128, 256, 512, 1024, 2048};
+    int test_sizes[] = {128, 256, 512, 1024, 2048, 4096, 8192};
     int num_sizes = sizeof(test_sizes) / sizeof(test_sizes[0]);
 
     // Set number of threads for OpenMP
@@ -47,12 +47,12 @@ int main() {
         double time_strassen_parallel = end_time - start_time;
         printf("Parallel Strassen time: %.4f seconds\n", time_strassen_parallel);
 
-        // --- 2) Serial Strassen ---
-        start_time = omp_get_wtime();
-        strassen_serial_optimized(A, B, C_strassen_serial, n);
-        end_time = omp_get_wtime();
-        double time_strassen_serial = end_time - start_time;
-        printf("Serial Strassen time:   %.4f seconds\n", time_strassen_serial);
+        // // --- 2) Serial Strassen ---
+        // start_time = omp_get_wtime();
+        // strassen_serial(A, B, C_strassen_serial, n);
+        // end_time = omp_get_wtime();
+        // double time_strassen_serial = end_time - start_time;
+        // printf("Serial Strassen time:   %.4f seconds\n", time_strassen_serial);
 
         // --- 3) Parallel Standard Multiplication ---
         start_time = omp_get_wtime();
@@ -69,23 +69,30 @@ int main() {
         printf("Serial Standard time:   %.4f seconds\n", time_standard_serial);
 
         // --- Compare correctness ---
-        int pass_strassen = compare_matrices(C_strassen_parallel, C_strassen_serial, n);
-        int pass_standard = compare_matrices(C_standard_parallel, C_standard_serial, n);
-        int pass_strassen_standard = compare_matrices(C_strassen_parallel, C_standard_serial, n);
-        printf("Parallel vs. Serial Strassen compare:   %s\n", pass_strassen ? "PASS" : "FAIL");
-        printf("Parallel vs. Serial Standard compare:   %s\n", pass_standard ? "PASS" : "FAIL");
-        printf("Strassen vs. Standard compare:          %s\n", pass_strassen_standard ? "PASS" : "FAIL");
+        // int pass_strassen = compare_matrices(C_strassen_parallel, C_strassen_serial, n);
+        // int pass_standard = compare_matrices(C_standard_parallel, C_standard_serial, n);
+        // int pass_strassen_standard = compare_matrices(C_strassen_parallel, C_standard_serial, n);
+        // printf("Parallel vs. Serial Strassen compare:   %s\n", pass_strassen ? "PASS" : "FAIL");
+        // printf("Parallel vs. Serial Standard compare:   %s\n", pass_standard ? "PASS" : "FAIL");
+        // printf("Strassen vs. Standard compare:          %s\n", pass_strassen_standard ? "PASS" : "FAIL");
 
+        int pass_strassen = compare_matrices(C_strassen_parallel, C_standard_parallel, n);
+        printf("Parallel Strassen vs. Parallel Standard compare:   %s\n", pass_strassen ? "PASS" : "FAIL");
         // --- Compute speedups ---
-        double speedup_strassen = time_strassen_serial / time_strassen_parallel;
-        double speedup_standard = time_standard_serial / time_standard_parallel;
-        double speedup_strassen_standard = time_standard_serial/time_strassen_serial;
+        // double speedup_strassen = time_strassen_serial / time_strassen_parallel;
+        // double speedup_standard = time_standard_serial / time_standard_parallel;
+        // double speedup_strassen_standard = time_standard_serial/time_strassen_serial;
+        // double final_speedup = time_standard_serial/time_strassen_parallel;
+        // printf("Final speedup (Standard vs Strassen): %.2f\n", final_speedup);
+        // printf("Strassen speedup (Serial vs Parallel):  %.2f\n", speedup_strassen);
+        // printf("Standard speedup (Serial vs Parallel):  %.2f\n", speedup_standard);
+        // printf("Strassen vs Standard speedup (Serial):  %.2f\n", speedup_strassen_standard);
+        double prarallel_speedup = time_standard_serial/time_standard_parallel;
+        printf("Parallel speedup (Standard serial vs Standard parallel): %.2f\n", prarallel_speedup);
         double final_speedup = time_standard_serial/time_strassen_parallel;
         printf("Final speedup (Standard vs Strassen): %.2f\n", final_speedup);
-        printf("Strassen speedup (Serial vs Parallel):  %.2f\n", speedup_strassen);
-        printf("Standard speedup (Serial vs Parallel):  %.2f\n", speedup_standard);
-        printf("Strassen vs Standard speedup (Serial):  %.2f\n", speedup_strassen_standard);
-
+        double strassen_speedup = time_standard_parallel/time_strassen_parallel;
+        printf("Strassen speedup (Standard parallel vs Strassen parallel): %.2f\n", strassen_speedup);
         // Cleanup
         free(A);
         free(B);

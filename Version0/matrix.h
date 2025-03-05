@@ -6,7 +6,7 @@
 
 
 // Macro definitions
-#define BASE_SIZE 64      // When n <= BASE_SIZE, use standard multiplication
+#define BASE_SIZE 256      // When n <= BASE_SIZE, use standard multiplication
 #define TOLERANCE 1e-6
 
 // Function prototypes
@@ -21,7 +21,7 @@ void multiply_standard_serial(const double *restrict A,
     const double *restrict B,
     double *restrict C,
     int n);
-void strassen_serial_optimized(double *A, double *B, double *C, int n);
+void strassen_serial(double *A, double *B, double *C, int n);
 
 // --- Parallel Versions ---
 void multiply_standard_parallel(const double *restrict A,
