@@ -7,7 +7,7 @@ void multiply_standard_serial(const double *restrict A,
     double *restrict C,
     int n) {
         int i, j, k;
-        const int blockSize = 16;  // 块尺寸，可根据硬件调节
+        const int blockSize = 32;  // 块尺寸，可根据硬件调节
     
         for (i = 0; i < n * n; i++) {
             C[i] = 0.0;

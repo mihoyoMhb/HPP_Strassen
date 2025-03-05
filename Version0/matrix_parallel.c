@@ -8,7 +8,7 @@ void multiply_standard_parallel(const double *restrict A,
     double *restrict C,
     int n) {
         int i, j, k;
-        const int blockSize = 16;  // 块尺寸，可根据硬件调节
+        const int blockSize = 32;  // 块尺寸，可根据硬件调节
     
         for (i = 0; i < n * n; i++) {
             C[i] = 0.0;
@@ -41,7 +41,7 @@ void multiply_standard_parallel(const double *restrict A,
         https://ximera.osu.edu/la/LinearAlgebra/MAT-M-0023/main
         https://www.netlib.org/utk/papers/autoblock/node2.html
         */
-        #pragma omp parallel for schedule(static)
+        #pragma omp parallel for schedule(dynamic)
         for (int ii = 0; ii < n; ii += blockSize) {
             int i_max = (ii + blockSize > n) ? n : (ii + blockSize);
             for (int kk = 0; kk < n; kk += blockSize) {
