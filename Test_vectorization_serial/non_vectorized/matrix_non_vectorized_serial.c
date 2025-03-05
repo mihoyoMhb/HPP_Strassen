@@ -1,18 +1,17 @@
-#include "matrix_vectorized_serial.h"
+#include "matrix_non_vectorized_serial.h"
 
-void multiply_standard_serial_vectorized(const double *restrict A,
-                                           const double *restrict B,
-                                           double *restrict C,
-                                           int n) {
+void multiply_standard_serial_non_vectorized(const double *A,
+                                               const double *B,
+                                               double *C,
+                                               int n) {
     int i, j, k;
-    const int blockSize = 64;  // 块尺寸，可根据硬件调节
+    const int blockSize = 64;  // 块尺寸
 
     // 初始化 C 为 0
     for (i = 0; i < n * n; i++) {
         C[i] = 0.0;
     }
 
-    // 使用块（Tiling）进行矩阵乘法，结合 omp simd 提示编译器向量化内层循环
     for (int ii = 0; ii < n; ii += blockSize) {
         int i_max = (ii + blockSize > n) ? n : (ii + blockSize);
         for (int kk = 0; kk < n; kk += blockSize) {
@@ -22,8 +21,6 @@ void multiply_standard_serial_vectorized(const double *restrict A,
                 for (i = ii; i < i_max; i++) {
                     for (k = kk; k < k_max; k++) {
                         double a_ik = A[i * n + k];
-                        // 提示编译器对内层循环进行向量化
-                        #pragma omp simd
                         for (j = jj; j < j_max; j++) {
                             C[i * n + j] += a_ik * B[k * n + j];
                         }

@@ -1,5 +1,5 @@
 CC = gcc -std=c99 -fopenmp
-CFLAGS = -O0 -Wall
+CFLAGS = -O0 -Wall 
 TARGET = non_vectorized_mm
 
 OBJS = main.o matrix_non_vectorized_serial.o
