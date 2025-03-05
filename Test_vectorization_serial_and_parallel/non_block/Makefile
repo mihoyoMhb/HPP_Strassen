@@ -1,5 +1,5 @@
 CC = gcc -std=c99 -fopenmp
-CFLAGS = -O2 -Wall 
+CFLAGS = -O1 -Wall 
 TARGET = non_block_mm
 
 OBJS = main.o matrix_non_block_serial.o

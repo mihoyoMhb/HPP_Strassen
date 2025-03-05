@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <omp.h>
-#include "matrix_non_vectorized_serial.h"
+#include "matrix_non_block_vectorized_serial.h"
 
 int main() {
     int n = 2048;  // 测试矩阵尺寸
@@ -18,7 +18,7 @@ int main() {
     }
 
     double start = omp_get_wtime();
-    multiply_standard_serial_non_vectorized(A, B, C, n);
+    multiply_standard_serial_non_block_vectorized(A, B, C, n);
     double end = omp_get_wtime();
 
     printf("Non-vectorized serial matrix multiplication (n=%d) took %.6f seconds.\n", n, end - start);
