@@ -3,6 +3,10 @@
 #include <omp.h>
 #include "matrix.h"
 
+
+
+
+
 int main() {
     // Define the matrix sizes for testing
     int test_sizes[] = {128, 256, 512, 1024, 2048, 4096, 8192};
