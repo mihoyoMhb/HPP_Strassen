@@ -139,21 +139,43 @@ void sub_matrix_stride(double*A, int strideA, double* B, int strideB, double* C,
 }
 
 void multiply_standard_stride(double const* restrict A, int strideA,
-    double const* restrict B, int strideB,
-    double* restrict C, int strideC,
-      int n) {
+                            double const* restrict B, int strideB,
+                            double* restrict C, int strideC,
+                              int n) {
     for(int i = 0; i < n; i++) {
         for (int j = 0; j < n; j++) {
             C[i * strideC + j] = 0;
         }
     }
-    for (int i = 0; i < n; i++) {
-        for (int k = 0; k < n; k++) {
-            double a = A[i * strideA + k];
-            for (int j = 0; j < n; j++) {
-                C[i * strideC + j] += a * B[k * strideB + j];
-            }
-        }
+    // Alse we use blocking here
+    const int blockSize = 32; // Adjust to fit cache
+
+    for(int ii = 0; ii < n; ii += blockSize){
+        int i_max = (ii + blockSize > n) ? n : ii + blockSize;
+        for(int kk = 0; kk < n; kk += blockSize){
+            int k_max = (kk + blockSize > n) ? n : kk + blockSize;
+            for (int jj = 0; jj < n; jj += blockSize){
+                int j_max = (jj + blockSize > n) ? n : jj + blockSize;
+                
+                // Packing
+                int packed_cols = j_max - jj;
+                double B_pack[blockSize * blockSize];
+                for (int k = kk; k < k_max; ++k) {
+                    for (int j = jj; j < j_max; ++j) {
+                        B_pack[(k - kk) * packed_cols + (j - jj)] = B[k * strideB + j];
+                    }
+                }
+
+                for (int i = ii; i < i_max; ++i) {
+                    for (int k = kk; k < k_max; ++k) {
+                        double a_ik = A[i * strideA + k];
+                        for (int j = jj; j < j_max; ++j) {
+                            C[i * strideC + j] += a_ik * B_pack[(k - kk) * packed_cols + (j - jj)];
+                        }
+                    }
+                }
+            }           
+         }
     }
 }
 
