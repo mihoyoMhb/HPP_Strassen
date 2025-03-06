@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
+#include <omp.h>
 #include "matrix.h"
 // Serial Strassen's algorithm (recursive, without OpenMP tasks)
 void strassen_serial(double *A, double *B, double *C, int n) {
@@ -153,6 +154,7 @@ void multiply_standard_stride(double const* restrict A, int strideA,
             C[i * strideC + j] = 0;
         }
     }
+    // #pragma omp parallel for 
     for (int i = 0; i < n; i++) {
         for (int k = 0; k < n; k++) {
             double a = A[i * strideA + k];

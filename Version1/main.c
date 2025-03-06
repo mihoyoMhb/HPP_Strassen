@@ -38,13 +38,7 @@ int main() {
 
         // --- 1) Parallel Strassen ---
         double start_time = omp_get_wtime();
-        #pragma omp parallel
-        {
-            #pragma omp single
-            {
-                strassen_parallel(A, B, C_strassen_parallel, n);
-            }
-        }
+        strassen_parallel(A, B, C_strassen_parallel, n);
         double end_time = omp_get_wtime();
         double time_strassen_parallel = end_time - start_time;
         printf("Parallel Strassen time: %.4f seconds\n", time_strassen_parallel);
