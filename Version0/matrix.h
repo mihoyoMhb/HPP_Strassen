@@ -6,8 +6,10 @@
 
 
 // Macro definitions
-#define BASE_SIZE 64      // When n <= BASE_SIZE, use standard multiplication
-#define TOLERANCE 1e-4
+
+#define BASE_SIZE 256      // When n <= BASE_SIZE, use standard multiplication
+#define TOLERANCE 1e-6
+
 
 // Function prototypes
 

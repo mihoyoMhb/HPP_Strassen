@@ -47,12 +47,13 @@ int main() {
         double time_strassen_parallel = end_time - start_time;
         printf("Parallel Strassen time: %.4f seconds\n", time_strassen_parallel);
 
-        // --- 2) Serial Strassen ---
+
         start_time = omp_get_wtime();
         strassen_serial_optimized(A, B, C_strassen_serial, n);
         end_time = omp_get_wtime();
         double time_strassen_serial = end_time - start_time;
         printf("Serial Strassen time:   %.4f seconds\n", time_strassen_serial);
+
 
         // --- 3) Parallel Standard Multiplication ---
         start_time = omp_get_wtime();
@@ -69,6 +70,7 @@ int main() {
         printf("Serial Standard time:   %.4f seconds\n", time_standard_serial);
 
         // --- Compare correctness ---
+
         int pass_strassen_standard = compare_matrices(C_strassen_parallel, C_standard_serial, n);
         printf("Strassen vs. Standard compare:          %s\n", pass_strassen_standard ? "PASS" : "FAIL");
         int pass_strassen_parallel = compare_matrices(C_strassen_parallel, C_standard_parallel, n);
@@ -85,6 +87,7 @@ int main() {
         printf("Parallel speedup (Standard serial vs Standard parallel): %.2f\n", prarallel_speedup);
         double final_speedup = time_standard_serial/time_strassen_parallel;
         printf("Final speedup (Standard vs Strassen_parallel): %.2f\n", final_speedup);
+
         // Cleanup
         free(A);
         free(B);
