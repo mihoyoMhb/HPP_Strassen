@@ -120,10 +120,7 @@ void strassen_serial(double *A, double *B, double *C, int n) {
     free(C11); free(C12); free(C21); free(C22);
 }
 
-void add_matrix_stride(double const* restrict A, int strideA,
-    double const* restrict B, int strideB,
-    double* restrict C, int strideC,
-      int n) {
+void add_matrix_stride(double *A, int strideA, double *B, int strideB, double *C, int strideC, int n) {
     /*This is function for improved verison of serila strassen functions*/
     
     for (int i = 0; i < n; i++){
@@ -133,10 +130,7 @@ void add_matrix_stride(double const* restrict A, int strideA,
     }
 }
 
-void sub_matrix_stride(double const* restrict A, int strideA,
-    double const* restrict B, int strideB,
-    double* restrict C, int strideC,
-      int n){
+void sub_matrix_stride(double*A, int strideA, double* B, int strideB, double* C, int strideC, int n){
     for(int i =0; i<n;i++){
         for(int j=0; j<n;j++){
             C[i*strideC + j] = A[i*strideA + j] - B[i*strideB + j];
@@ -206,7 +200,6 @@ static void strassen_helper_func(double*A, int strideA,
     double *A21 = A + new_n * strideA;
     double *A22 = A21 + new_n;
     
-
     double *B11 = B;
     double *B12 = B + new_n;
     double *B21 = B + new_n * strideB;
