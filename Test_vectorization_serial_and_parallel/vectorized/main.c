@@ -17,11 +17,14 @@ int main() {
         B[i] = (double)rand() / RAND_MAX;
     }
 
+    
     double start = omp_get_wtime();
     multiply_standard_serial_vectorized(A, B, C, n);
     double end = omp_get_wtime();
 
     printf("Vectorized serial matrix multiplication (n=%d) took %.6f seconds.\n", n, end - start);
+
+
 
     free(A);
     free(B);

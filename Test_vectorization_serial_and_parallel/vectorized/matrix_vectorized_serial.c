@@ -75,3 +75,4 @@ void multiply_standard_serial_vectorized(const double *restrict A,
         }
     }
 }
+
