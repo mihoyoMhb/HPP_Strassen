@@ -49,7 +49,7 @@ int main() {
 
 
         start_time = omp_get_wtime();
-        strassen_serial(A, B, C_strassen_serial, n);
+        strassen_serial_optimized(A, B, C_strassen_serial, n);
         end_time = omp_get_wtime();
         double time_strassen_serial = end_time - start_time;
         printf("Serial Strassen time:   %.4f seconds\n", time_strassen_serial);
