@@ -16,6 +16,7 @@ struct TaskFrame {
     int strideC;
     int n;
     int stage;
+    int initial_n;
 };
 
 // Global task stack for parallel execution

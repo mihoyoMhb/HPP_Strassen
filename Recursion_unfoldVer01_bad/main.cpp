@@ -1,4 +1,5 @@
 #include <iostream>
+#include <omp.h>
 #include <vector>
 #include <chrono>
 #include <random>
@@ -161,7 +162,7 @@ int main() {
     std::cout << "----------------------------------------" << std::endl;
 
     // Test with various matrix sizes
-    std::vector<int> sizes = {128};
+    std::vector<int> sizes = {2048};
     
     for (int n : sizes) {
         std::cout << "\nTesting with matrix size n = " << n << std::endl;
@@ -195,7 +196,7 @@ int main() {
         std::chrono::duration<double> elapsed_serial = end_serial - start_serial;
         
         std::cout << "Serial Strassen multiplication completed." << std::endl;
-
+        omp_set_num_threads(7); // Set the number of threads for parallel execution
         // Run the parallel Strassen algorithm
         auto start_parallel = std::chrono::high_resolution_clock::now();
         debug_matrices(A, B, C_parallel, n);
@@ -205,18 +206,18 @@ int main() {
         
         // Calculate error
         double error_serial = matrix_difference_norm(C_serial, C_standard, n);
-        // double error_parallel = matrix_difference_norm(C_parallel, C_standard, n);
+        double error_parallel = matrix_difference_norm(C_parallel, C_standard, n);
         
         // Print results
         std::cout << "Standard multiplication time: " << elapsed_std.count() << " seconds" << std::endl;
         std::cout << "Serial Strassen time: " << elapsed_serial.count() << " seconds (speedup: " 
                   << elapsed_std.count() / elapsed_serial.count() << "x)" << std::endl;
-        // std::cout << "Parallel Strassen time: " << elapsed_parallel.count() << " seconds (speedup: " 
-        //           << elapsed_std.count() / elapsed_parallel.count() << "x)" << std::endl;
+        std::cout << "Parallel Strassen time: " << elapsed_parallel.count() << " seconds (speedup: " 
+                   << elapsed_std.count() / elapsed_parallel.count() << "x)" << std::endl;
         // std::cout << "Serial vs Parallel speedup: " << elapsed_serial.count() / elapsed_parallel.count() << "x" << std::endl;
         
         std::cout << "Error of serial Strassen: " << error_serial << std::endl;
-        // std::cout << "Error of parallel Strassen: " << error_parallel << std::endl;
+         std::cout << "Error of parallel Strassen: " << error_parallel << std::endl;
         
         // // Print a small sample of the matrices for visual check
         // if (n <= 512) { // Only for smaller matrices
