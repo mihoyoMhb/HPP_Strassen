@@ -3,7 +3,7 @@
 #include <iostream>
 #include <cstring> // For memset
 #include <algorithm> // For std::min
-
+#include <cmath> // For pow
 // Global task stack for parallel execution
 std::stack<TaskFrame> TaskStack;
 
@@ -316,7 +316,13 @@ void strassen_loop_parallel(double* A, double* B, double* C, int n) {
         multiply_standard_stride_p(A, n, B, n, C, n, n);
         return;
     }
-    
+    int check = n/BASE_SIZE;
+    if(log2(check) >= 5) {
+        std::cerr << "Matrix size too large, using standard multiplication" << std::endl;
+        //multiply_standard_stride_p(A, n, B, n, C, n, n);
+        std::cout << "Done!" << std::endl;
+        return;
+    }
     // Calculate required memory size
     size_t total_mem = n * n * 5; // Estimate based on recursion depth
     

@@ -161,7 +161,7 @@ int main() {
     std::cout << "----------------------------------------" << std::endl;
 
     // Test with various matrix sizes
-    std::vector<int> sizes = {2048};
+    std::vector<int> sizes = {16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768};
     
     for (int n : sizes) {
         std::cout << "\nTesting with matrix size n = " << n << std::endl;
@@ -184,13 +184,13 @@ int main() {
         std::cout << "Random matrices generated." << std::endl;
         // Compute standard matrix multiplication for reference
         auto start_std = std::chrono::high_resolution_clock::now();
-        standard_matrix_multiply(A, B, C_standard, n);
+        ///standard_matrix_multiply(A, B, C_standard, n);
         auto end_std = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> elapsed_std = end_std - start_std;
         
         // Run the serial Strassen algorithm
         auto start_serial = std::chrono::high_resolution_clock::now();
-        strassen_serial_optimized(A, B, C_serial, n);
+        //strassen_serial_optimized(A, B, C_serial, n);
         auto end_serial = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> elapsed_serial = end_serial - start_serial;
         
@@ -198,8 +198,8 @@ int main() {
 
         // Run the parallel Strassen algorithm
         auto start_parallel = std::chrono::high_resolution_clock::now();
-        debug_matrices(A, B, C_parallel, n);
-        strassen_loop_parallel(A, B, C_parallel, n);
+        //debug_matrices(A, B, C_parallel, n);
+        strassen_parallel_optimized(A, B, C_parallel, n);
         auto end_parallel = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> elapsed_parallel = end_parallel - start_parallel;
         

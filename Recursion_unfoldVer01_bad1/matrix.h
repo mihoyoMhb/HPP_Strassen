@@ -23,7 +23,7 @@ struct TaskFrame {
 extern std::stack<TaskFrame> TaskStack;
 
 // Function declarations
-void strassen_loop_parallel(double* A, double* B, double* C, int n);
+void strassen_parallel_optimized(double* A, double* B, double* C, int n);
 void process_strassen_layer(TaskFrame* frame, double* mem_pool);
 void multiply_standard_stride_p(const double* A, int strideA, const double* B, int strideB, 
                                double* C, int strideC, int n);

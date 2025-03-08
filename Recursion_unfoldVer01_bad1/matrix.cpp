@@ -1,11 +1,18 @@
 #include "matrix.h"
-#include <immintrin.h> // for AVX instructions if needed
+#include <immintrin.h>   // for AVX instructions if needed
 #include <iostream>
-#include <cstring> // For memset
-#include <algorithm> // For std::min
+#include <cstring>       // For memset
+#include <algorithm>
+#include <cmath>
+#include <stack>
+#include <mutex>
+#include <omp.h>
 
 // Global task stack for parallel execution
 std::stack<TaskFrame> TaskStack;
+// Global mutex for thread safety
+std::mutex task_mutex;
+
 
 void multiply_standard_stride_p(const double* A, int strideA,
                              const double* B, int strideB,
@@ -46,6 +53,30 @@ void sub_matrix_stride(const double* A, int strideA,
             C[i * strideC + j] = A[i * strideA + j] - B[i * strideB + j];
         }
     }
+}
+
+size_t calculate_total_mem(int n) {
+    size_t total = 0;
+    for (int i = 1; i <= n; i++) {
+        total += pow(7, i-1) * 21 * n * n /(pow(2, 2*i));
+    }
+    return total;
+}
+
+size_t get_layer_offset(int current_n, int initial_n) {
+    size_t offset = 0;
+    
+    // // Calculate memory offset for the current recursion layer
+    // while (n > current_n) {
+    //     offset += pow(7, i) * 21 * n * n /(pow(2, 2*i));
+    //     n /= 2;
+    // }
+    // return offset;
+    int t = log2(initial_n / current_n);
+    for(int i = 1; i <= t; i++) {
+        offset += pow(7, i-1) * 21 * (current_n/2) * (current_n/2) /(pow(2, 2*i));
+    }
+    return offset;
 }
 
 void compute_M_matrix(int m_idx, TaskFrame* frame, double* temp) {
@@ -208,19 +239,7 @@ void combineResults(TaskFrame* frame, double* temp) {
     }
 }
 
-size_t get_layer_offset(int current_n, int initial_n) {
-    size_t offset = 0;
-    int n = initial_n;
-    
-    // Calculate memory offset for the current recursion layer
-    while (n > current_n) {
-        // Each layer needs 9 temporary matrices of size (n/2)^2
-        //offset += 9 * (n / 2) * (n / 2);
-        offset += 21 * (n / 2) * (n / 2);
-        n /= 2;
-    }
-    return offset;
-}
+
 
 void createSubtasks(TaskFrame* frame, double* temp) {
     // Create tasks for each M computation
@@ -257,6 +276,11 @@ void createSubtasks(TaskFrame* frame, double* temp) {
     }
 }
 
+
+
+
+
+
 void process_strassen_layer(TaskFrame* frame, double* mem_pool) {
     // Calculate dimensions for this layer
     int new_n = frame->n / 2;
@@ -287,15 +311,8 @@ void process_strassen_layer(TaskFrame* frame, double* mem_pool) {
 }
 
 
-size_t calculate_total_mem(int n) {
-    size_t total = 0;
-    while (n > BASE_SIZE) {
-        const int sub_size = (n/2) * (n/2);
-        total += 21 * sub_size; // 7结果 + 14临时 = 21
-        n /= 2;
-    }
-    return total;
-}
+
+
 
 
 void strassen_loop_parallel(double* A, double* B, double* C, int n) {
@@ -304,9 +321,23 @@ void strassen_loop_parallel(double* A, double* B, double* C, int n) {
         multiply_standard_stride_p(A, n, B, n, C, n, n);
         return;
     }
-    
+    // Before allocating memory, check if n is too big, if so, use standard multiplication
+    // int check = n/BASE_SIZE;
+    // if(log2(check) > 5) {
+    //     std::cerr << "Matrix size too large, using standard multiplication" << std::endl;
+    //     //multiply_standard_stride_p(A, n, B, n, C, n, n);
+    //     std::cout << "Done!" << std::endl;
+    //     return;
+    // }
+
+    int recussion_depth = log2(n / BASE_SIZE);
+    if (recussion_depth > 5) {
+        std::cerr << "Matrix size too large, using standard multiplication" << std::endl;
+        multiply_standard_stride_p(A, n, B, n, C, n, n);
+        return;
+    }
     // Calculate required memory size
-    size_t total_mem = calculate_total_mem(n);
+    size_t total_mem = calculate_total_mem(recussion_depth);
     
     // Allocate memory pool with proper alignment for SIMD operations
     double *mem_pool = static_cast<double*>(aligned_alloc(64, total_mem * sizeof(double)));
@@ -318,50 +349,69 @@ void strassen_loop_parallel(double* A, double* B, double* C, int n) {
     
     // Initialize the memory pool
     memset(mem_pool, 0, total_mem * sizeof(double));
+    std::cout << "Memory pool allocated at: " << mem_pool << std::endl;
+    std::cout << "Total memory size: " << total_mem * sizeof(double) << " bytes" << std::endl; 
+//     // Reset the task stack
+//     while (!TaskStack.empty()) {
+//         TaskStack.pop();
+//     }
     
-    // Reset the task stack
-    while (!TaskStack.empty()) {
-        TaskStack.pop();
-    }
-    
-    #pragma omp parallel
-    #pragma omp single
-    {
-        // Initialize with the root task
-        TaskFrame root;
-        root.A = A;
-        root.B = B;
-        root.C = C;
-        root.strideA = n;
-        root.strideB = n;
-        root.strideC = n;
-        root.n = n;
-        root.stage = 0;
-        root.initial_n = n;
+//     #pragma omp parallel
+//     #pragma omp single
+//     {
+//         // Initialize with the root task
+//         TaskFrame root;
+//         root.A = A;
+//         root.B = B;
+//         root.C = C;
+//         root.strideA = n;
+//         root.strideB = n;
+//         root.strideC = n;
+//         root.n = n;
+//         root.stage = 0;
+//         root.initial_n = n;
 
-        #pragma omp critical
-        {
-            TaskStack.push(root);
-        }
+//         #pragma omp critical
+//         {
+//             TaskStack.push(root);
+//         }
         
-        // Process tasks until the stack is empty
-        while(!TaskStack.empty()) {
-            TaskFrame current_frame;
+//         // Process tasks until the stack is empty
+//         while(!TaskStack.empty()) {
+//             TaskFrame current_frame;
             
-            #pragma omp critical
-            {
-                if (!TaskStack.empty()) {
-                    current_frame = TaskStack.top();
-                    TaskStack.pop();
-                }
-            }
+//             #pragma omp critical
+//             {
+//                 if (!TaskStack.empty()) {
+//                     current_frame = TaskStack.top();
+//                     TaskStack.pop();
+//                 }
+//             }
             
-                // For larger matrices, apply the Strassen algorithm
-                process_strassen_layer(&current_frame, mem_pool);
+//                 // For larger matrices, apply the Strassen algorithm
+//                 process_strassen_layer(&current_frame, mem_pool);
 
-        }
-    }
+//         }
+//     }
     
-    // Free the memory pool
-    free(mem_pool);
+//     // Free the memory pool
+//     free(mem_pool);
+}
+
+void strassen_parallel_optimized(double *A, double *B, double *C, int n) {
+    int recussion_depth = log2(n / BASE_SIZE);
+    // if (recussion_depth > 5) {
+    //     std::cerr << "Matrix size too large, using standard multiplication" << std::endl;
+    //     multiply_standard_stride_p(A, n, B, n, C, n, n);
+    //     return;
+    // }
+    size_t total_mem = calculate_total_mem(recussion_depth);
+    double *mem_pool = static_cast<double*>(aligned_alloc(64, total_mem * sizeof(double)));
+    if (!mem_pool) {
+        std::cerr << "Memory allocation failed!" << std::endl;
+        return;
+    }
+    memset(mem_pool, 0, total_mem * sizeof(double));
+    std::cout << "Memory pool allocated at: " << mem_pool << std::endl;
+    std::cout << "Total memory size: " << total_mem * sizeof(double) << " bytes" << std::endl; 
 }
