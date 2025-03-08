@@ -3,7 +3,6 @@
 #include <omp.h>
 
 
-// Parallel Strassen's algorithm using OpenMP tasks
 void strassen_parallel(const double *restrict A,
     const double *restrict B,
     double *restrict C,
@@ -64,48 +63,100 @@ void strassen_parallel(const double *restrict A,
     double *T9 = (double*)malloc(size * sizeof(double));
     double *T10 = (double*)malloc(size * sizeof(double));
     
-    // Build Strassen subexpressions using common functions
-    add_matrix(A11, A22, T1, newSize);
-    add_matrix(B11, B22, T2, newSize);
-    add_matrix(A21, A22, T3, newSize);
-    sub_matrix(B12, B22, T4, newSize);
-    sub_matrix(B21, B11, T5, newSize);
-    add_matrix(A11, A12, T6, newSize);
-    sub_matrix(A21, A11, T7, newSize);
-    add_matrix(B11, B12, T8, newSize);
-    sub_matrix(A12, A22, T9, newSize);
-    add_matrix(B21, B22, T10, newSize);
+    // 优化点：并行计算所有临时子表达式 T1-T10
+    #pragma omp taskgroup
+    {
+        #pragma omp task shared(T1) firstprivate(A11, A22, newSize)
+        {
+            add_matrix(A11, A22, T1, newSize);
+        }
+        
+        #pragma omp task shared(T2) firstprivate(B11, B22, newSize)
+        {
+            add_matrix(B11, B22, T2, newSize);
+        }
+        
+        #pragma omp task shared(T3) firstprivate(A21, A22, newSize)
+        {
+            add_matrix(A21, A22, T3, newSize);
+        }
+        
+        #pragma omp task shared(T4) firstprivate(B12, B22, newSize)
+        {
+            sub_matrix(B12, B22, T4, newSize);
+        }
+        
+        #pragma omp task shared(T5) firstprivate(B21, B11, newSize)
+        {
+            sub_matrix(B21, B11, T5, newSize);
+        }
+        
+        #pragma omp task shared(T6) firstprivate(A11, A12, newSize)
+        {
+            add_matrix(A11, A12, T6, newSize);
+        }
+        
+        #pragma omp task shared(T7) firstprivate(A21, A11, newSize)
+        {
+            sub_matrix(A21, A11, T7, newSize);
+        }
+        
+        #pragma omp task shared(T8) firstprivate(B11, B12, newSize)
+        {
+            add_matrix(B11, B12, T8, newSize);
+        }
+        
+        #pragma omp task shared(T9) firstprivate(A12, A22, newSize)
+        {
+            sub_matrix(A12, A22, T9, newSize);
+        }
+        
+        #pragma omp task shared(T10) firstprivate(B21, B22, newSize)
+        {
+            add_matrix(B21, B22, T10, newSize);
+        }
+    }
+    // taskgroup结束后，所有T1-T10的计算已完成
     
-    // Use OpenMP tasks to compute the 7 multiplications in parallel
-    #pragma omp task shared(M1) firstprivate(T1, T2, newSize)
+    // 现在并行计算7个Strassen乘法
+    #pragma omp taskgroup
     {
-        strassen_parallel(T1, T2, M1, newSize);
+        #pragma omp task shared(M1) firstprivate(T1, T2, newSize)
+        {
+            strassen_parallel(T1, T2, M1, newSize);
+        }
+        
+        #pragma omp task shared(M2) firstprivate(T3, B11, newSize)
+        {
+            strassen_parallel(T3, B11, M2, newSize);
+        }
+        
+        #pragma omp task shared(M3) firstprivate(A11, T4, newSize)
+        {
+            strassen_parallel(A11, T4, M3, newSize);
+        }
+        
+        #pragma omp task shared(M4) firstprivate(A22, T5, newSize)
+        {
+            strassen_parallel(A22, T5, M4, newSize);
+        }
+        
+        #pragma omp task shared(M5) firstprivate(T6, B22, newSize)
+        {
+            strassen_parallel(T6, B22, M5, newSize);
+        }
+        
+        #pragma omp task shared(M6) firstprivate(T7, T8, newSize)
+        {
+            strassen_parallel(T7, T8, M6, newSize);
+        }
+        
+        #pragma omp task shared(M7) firstprivate(T9, T10, newSize)
+        {
+            strassen_parallel(T9, T10, M7, newSize);
+        }
     }
-    #pragma omp task shared(M2) firstprivate(T3, B11, newSize)
-    {
-        strassen_parallel(T3, B11, M2, newSize);
-    }
-    #pragma omp task shared(M3) firstprivate(A11, T4, newSize)
-    {
-        strassen_parallel(A11, T4, M3, newSize);
-    }
-    #pragma omp task shared(M4) firstprivate(A22, T5, newSize)
-    {
-        strassen_parallel(A22, T5, M4, newSize);
-    }
-    #pragma omp task shared(M5) firstprivate(T6, B22, newSize)
-    {
-        strassen_parallel(T6, B22, M5, newSize);
-    }
-    #pragma omp task shared(M6) firstprivate(T7, T8, newSize)
-    {
-        strassen_parallel(T7, T8, M6, newSize);
-    }
-    #pragma omp task shared(M7) firstprivate(T9, T10, newSize)
-    {
-        strassen_parallel(T9, T10, M7, newSize);
-    }
-    #pragma omp taskwait  // Wait for all tasks to complete
+    // 不需要显式的taskwait，taskgroup保证所有任务完成
     
     // Combine results into matrix C
     double *C11 = (double*)malloc(size * sizeof(double));
@@ -113,6 +164,7 @@ void strassen_parallel(const double *restrict A,
     double *C21 = (double*)malloc(size * sizeof(double));
     double *C22 = (double*)malloc(size * sizeof(double));
     
+    // 这里也可以考虑并行，但通常这部分计算量较小
     add_matrix(M1, M4, C11, newSize);
     sub_matrix(C11, M5, C11, newSize);
     add_matrix(C11, M7, C11, newSize);

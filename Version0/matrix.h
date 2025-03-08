@@ -7,7 +7,7 @@
 
 // Macro definitions
 
-#define BASE_SIZE 256      // When n <= BASE_SIZE, use standard multiplication
+#define BASE_SIZE 512      // When n <= BASE_SIZE, use standard multiplication
 #define TOLERANCE 1e-6
 
 
